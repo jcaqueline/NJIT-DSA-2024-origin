@@ -11,8 +11,11 @@ public class StackAllocationException extends RuntimeException {
    /**
     * Constructor for the exception.
     * @param message The message visible to developer or user.
+    * @param e 
     */
-   public StackAllocationException(String message) {
-      super(message);
+  
+
+   public StackAllocationException(String string) {
+      super(string);
    } 
 }

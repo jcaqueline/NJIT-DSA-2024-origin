@@ -25,6 +25,9 @@ public interface StackInterface<E> {
     * @throws StackAllocationException if no additional room can be allocated for the stack
     * @throws NullPointerException if the element pushed is null.
     */
+    
+   
+
    public void push(E element) throws StackAllocationException, NullPointerException;
 
    /**
