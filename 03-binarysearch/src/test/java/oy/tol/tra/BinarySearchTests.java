@@ -71,7 +71,7 @@ public class BinarySearchTests {
             System.out.println("Sorting the array...");
             start = System.nanoTime();
             // You must have implemented this as instructed in Exercise 01-arrays!
-            Algorithms.sort(array);
+            Algorithms.fastSort(array);
             System.out.println("Sorting the array took " + (System.nanoTime() - start) + " ns");
 
             System.out.println("-- Starting the test with binary search --");
@@ -123,7 +123,7 @@ public class BinarySearchTests {
             System.out.println("Sorting the array...");
             start = System.nanoTime();
             // You must have implemented this as instructed in Exercise 01-arrays!
-            Algorithms.sort(array);
+            Algorithms.fastSort(array);
             System.out.println("Sorting the array took " + (System.nanoTime() - start) + " ns");
 
             System.out.println("-- Starting the test with binary search --");
