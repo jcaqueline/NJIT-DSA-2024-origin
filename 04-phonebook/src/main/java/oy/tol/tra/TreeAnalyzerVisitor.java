@@ -7,8 +7,9 @@ class TreeAnalyzerVisitor<K extends Comparable<K>, V> implements Visitor<K, V> {
 	int currentHeight = 0;
 
 	TreeAnalyzerVisitor() {
-		// Nada
+		
 	}
+
 
 	@Override
 	public void visit(TreeNode<K, V> node) {

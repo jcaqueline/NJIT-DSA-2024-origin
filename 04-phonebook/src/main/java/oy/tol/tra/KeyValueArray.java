@@ -1,8 +1,6 @@
 package oy.tol.tra;
 
-/**
- * A generic and slow Key-Value linear array.
- */
+
 public class KeyValueArray<K extends Comparable<K>, V> implements Dictionary<K,V> {
 
    private Pair<K, V> [] pairs = null;
@@ -16,6 +14,7 @@ public class KeyValueArray<K extends Comparable<K>, V> implements Dictionary<K,V
    public KeyValueArray() {
       ensureCapacity(20);
    }
+
 
    @Override
    public Type getType() {
@@ -106,5 +105,4 @@ public class KeyValueArray<K extends Comparable<K>, V> implements Dictionary<K,V
       }
       pairs = newPairs;
    }
-
 }

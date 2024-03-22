@@ -11,7 +11,7 @@ class TreeNode<K extends Comparable<K>, V> {
    // OPTIONAL Handling collisions with a linked list in the tree node.
    LinkedListImplementation<Pair<K,V>> list = null;
    
-   // Needed for searching by key; value is not then needed.
+   
    TreeNode(K key) throws NullPointerException {
       if (null == key)
          throw new NullPointerException("K cannot be null");
@@ -21,6 +21,7 @@ class TreeNode<K extends Comparable<K>, V> {
       right = null;
       list = null;
    }
+
 
    TreeNode(K toAdd, V value) throws NullPointerException {
       if (null == toAdd)

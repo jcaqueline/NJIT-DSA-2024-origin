@@ -15,6 +15,7 @@ public class LinkedListImplementation<E> implements LinkedListInterface<E> {
       }
    }
 
+   
    private Node<E> head = null;
    private int size = 0;
 
@@ -243,6 +244,4 @@ public class LinkedListImplementation<E> implements LinkedListInterface<E> {
       }
       builder.append("]");
       return builder.toString();
-   }
-   
-}
+   }}

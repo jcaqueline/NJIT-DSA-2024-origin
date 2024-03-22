@@ -1,9 +1,6 @@
 package oy.tol.tra;
 
-/**
- * A generic interface to linked list class.
- * This has already been implemented for you, so need to implement this. 
- */
+
 public interface LinkedListInterface<E> {
    
    /**
@@ -12,6 +9,7 @@ public interface LinkedListInterface<E> {
     * @throws NullPointerException If the parameter element is null.
     * @throws LinkedListAllocationException If failed to allocate a new list element.
     */
+
    public void add(E element) throws NullPointerException, LinkedListAllocationException;
 
    /**

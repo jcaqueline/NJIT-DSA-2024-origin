@@ -20,13 +20,10 @@ public interface Dictionary<K extends Comparable<K>, V> {
        * A binary search tree implementation. Not to be confused with binary search.
        */
       BST,
-      /**
-       * NONE means not yet implemented.
-       * Change the value returned in `getType()` to HASHTABLE or BST when you are
-       * ready to test your implementations!
-       */
+     
       NONE
    }
+
 
    /**
     * Decide on which type to implement, either hash table or binary search tree.
