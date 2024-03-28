@@ -7,6 +7,7 @@ public class QueueImplementation<E> implements QueueInterface<E> {
     private LinkedList<E> queue;  
     private int initialCapacity;  
     private int currentSize;  
+    
   
     public QueueImplementation(int initialCapacity) {  
         if (initialCapacity < 0) {  
@@ -46,7 +47,9 @@ public class QueueImplementation<E> implements QueueInterface<E> {
         if (isEmpty()) {  
             throw new QueueIsEmptyException("Queue is empty");  
         }  
-        return queue.removeFirst();  
+        E item = queue.removeFirst(); 
+        currentSize--; 
+        return item;  
     }  
   
     @Override  
