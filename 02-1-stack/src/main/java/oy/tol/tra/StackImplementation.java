@@ -113,22 +113,23 @@ public class StackImplementation<E> implements StackInterface<E> {
    @Override
    public int size() {
      
-      return size;
+      return currentIndex+1;
    }
 
-   @SuppressWarnings("unchecked")
+   
    @Override
    public void clear() {
      
-      itemArray = (E[]) new Object[0];  
-      size = 0;  
       currentIndex = -1;
       
    }
 
    @Override
    public boolean isEmpty() {
-      return size == 0; 
+      if (currentIndex==-1){
+         return true;
+      }
+      return false;
       
       
    }
