@@ -1,5 +1,7 @@
 package oy.tol.tra;
 
+import java.util.EmptyStackException;
+
 /**
  * Uses the StackInterface implementation to check that parentheses in text files
  * match. 
@@ -49,17 +51,54 @@ public class ParenthesisChecker {
     */
     public static int checkParentheses(StackInterface<Character> stack, String fromString) throws ParenthesesException {
       // TODO:
-      // for each character in the input string
-      //   if character is an opening parenthesis -- one of "([{"
-      //      push it into the stack (check for failure and throw an exception if so)
-      //   else if character is a closing parenthesis -- one of ")]}"
-      //      pop the latest opening parenthesis from the stack
-      //      if the popped item is null
-      //         throw an exception, there are too many closing parentheses 
-      //      check the popped opening parenthesis against the closing parenthesis read from the string
-      //      if they do not match -- opening was { but closing was ], for example.
-      //         throw an exception, wrong kind of parenthesis were in the text (e.g. "asfa ( asdf } sadf")
-      // if the stack is not empty after all the characters have been handled
-      //   throw an exception since the string has more opening than closing parentheses.
+        int number = 0;
+            // for each character in the input string
+        for (int i=0;i<fromString.length();i++) {
+            //   if character is an opening parenthesis -- one of "([{"
+            char ch = fromString.charAt(i);
+            if (ch == '(' || ch == '[' || ch == '{'){
+                //  push it into the stack (check for failure and throw an exception if so)
+                try {
+                    stack.push(ch);
+                    number++;
+                } catch (Exception e) {
+                    throw new ParenthesesException("Failed to push", ParenthesesException.STACK_FAILURE);
+                }
+            }
+            //   else if character is a closing parenthesis -- one of ")]}"
+            //      pop the latest opening parenthesis from the stack
+            else if (ch == ')' || ch == ']' || ch == '}'){
+                //      if the popped item is null
+                //         throw an exception, there are too many closing parentheses
+                if (stack.isEmpty()){
+                    throw new ParenthesesException("There are too many closing parenthesis",ParenthesesException.TOO_MANY_CLOSING_PARENTHESES);
+                }
+                //      check the popped opening parenthesis against the closing parenthesis read from the string
+                //      if they do not match -- opening was { but closing was ], for example.
+                //         throw an exception, wrong kind of parenthesis were in the text (e.g. "asfa ( asdf } sadf")
+                else if (findMatch(stack.peek()) != ch){
+                    System.out.println(stack.peek());
+                    throw new ParenthesesException("Wrong kind of parenthesis were in the text",ParenthesesException.PARENTHESES_IN_WRONG_ORDER);
+                }else {
+                    stack.pop();
+                    number++;
+                }
+            }
+
+        }
+        // if the stack is not empty after all the characters have been handled
+        //   throw an exception since the string has more opening than closing parentheses.
+        if (!stack.isEmpty()){
+            throw new ParenthesesException("The string has more opening than closing parentheses.",ParenthesesException.TOO_FEW_CLOSING_PARENTHESES);
+        }
+       return number;
+   }
+
+   private static char findMatch(char parentheses){
+        if (parentheses == '('){
+            return ')';
+        }else if (parentheses == '['){
+            return ']';
+        }else return '}';
    }
 }
