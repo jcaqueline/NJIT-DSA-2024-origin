@@ -7,11 +7,21 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
-public class BSTBookImplementation implements Book {
-    private static final int MAX_WORDS = 100000;
-    private static final int MAX_WORD_LEN = 100;
-    KeyValueBSearchTree<String, Integer> words = null;
-    Pair<String,Integer>[] sorted;
+
+class BSTBookImplementation implements Book {
+
+    private class TreeNode {
+        TreeNode(String word) {
+            this.word = word;
+            this.count = 1;
+        }
+        String word;
+        int count;
+        TreeNode left, right;
+    }
+
+    private TreeNode root = null;
+    private TreeNode[] nodes;
     private String bookFile = null;
     private String wordsToIgnoreFile = null;
     private WordFilter filter = null;
@@ -22,7 +32,7 @@ public class BSTBookImplementation implements Book {
 
     @Override
     public void setSource(String fileName, String ignoreWordsFile) throws FileNotFoundException {
-// Check if both files exist. If not, throw an exception.
+        // Check if both files exist. If not, throw an exception.
         boolean success = false;
         if (checkFile(fileName)) {
             bookFile = fileName;
@@ -41,106 +51,91 @@ public class BSTBookImplementation implements Book {
         if (bookFile == null || wordsToIgnoreFile == null) {
             throw new IOException("No file(s) specified");
         }
-        // Reset the counters
+        
         uniqueWordCount = 0;
         totalWordCount = 0;
         loopCount = 0;
         ignoredWordsTotal = 0;
-        // Create an array for the words.
-        words = new KeyValueBSearchTree<>();
-        // Create the filter class to handle filtering.
+        root = null;
         filter = new WordFilter();
-        // Read the words to filter.
+        
         filter.readFile(wordsToIgnoreFile);
 
-        // Start reading from the book file using UTF-8.
-        FileReader reader = new FileReader(bookFile, StandardCharsets.UTF_8);
-        int c;
-        // Array holds the code points of the UTF-8 encoded chars.
-        int[] array = new int[MAX_WORD_LEN];
-        int currentIndex = 0;
-        while ((c = reader.read()) != -1) {
-            // If the char is a letter, then add it to the array...
-            if (Character.isLetter(c)) {
-                array[currentIndex] = c;
-                currentIndex++;
-            } else {
-                // ...otherwise a word break was met, so handle the word just read.
-                if (currentIndex > 0) {
-                    // If a word was actually read, then create a string out of the codepoints,
-                    // normalizing the word to lowercase.
-                    String word = new String(array, 0, currentIndex).toLowerCase(Locale.ROOT);
-                    // Reset the counter for the next word read.
-                    currentIndex = 0;
-                    addToWords(word);
+        try (FileReader reader = new FileReader(bookFile, StandardCharsets.UTF_8)) {
+            int c;
+            StringBuilder wordBuilder = new StringBuilder();
+            while ((c = reader.read()) != -1) {
+                if (Character.isLetter(c)) {
+                    wordBuilder.append((char) c);
+                } else if (wordBuilder.length() > 0) {
+                    String word = wordBuilder.toString().toLowerCase(Locale.ROOT);
+                    if (!filter.shouldFilter(word) && word.length() >= 2) {
+                        root = addToTree(root, word);
+                        totalWordCount++;
+                    } else {
+                        ignoredWordsTotal++;
+                    }
+                    wordBuilder.setLength(0);
+                }
+            }
+            if (wordBuilder.length() > 0) {
+                String word = wordBuilder.toString().toLowerCase(Locale.ROOT);
+                if (!filter.shouldFilter(word) && word.length() >= 2) {
+                    root = addToTree(root, word);
+                    totalWordCount++;
+                } else {
+                    ignoredWordsTotal++;
                 }
             }
         }
-        // Must check the last word in the file too. There may be chars in the array
-        // not yet handled, when read() returns -1 to indicate EOF.
-        if (currentIndex > 1) {
-            String word = new String(array, 0, currentIndex).toLowerCase(Locale.ROOT);
-            addToWords(word);
-        }
-        // Close the file reader.
-        reader.close();
     }
 
-    private void addToWords(String word) {
-        if (!filter.shouldFilter(word) && word.length() >= 2) {
-            if (words.size()==0){
-                words.add(word,1);
-                uniqueWordCount+=1;
-                totalWordCount+=1;
-                return;
-            }
-            Integer currentCount = 0;
-            if (words.find(word)==null){
-                currentCount = 1;
-                uniqueWordCount += 1;
-            }else {
-                currentCount = words.find(word)+1;
-            }
-            words.add(word,currentCount);
-            totalWordCount += 1;
+    private TreeNode addToTree(TreeNode node, String word) {
+        if (node == null) {
+            uniqueWordCount++;
+            return new TreeNode(word);
+        }
+        int hash1 = calcHash(word);
+        int hash2 = calcHash(node.word);
+        if (hash1 < hash2) {
+            node.left = addToTree(node.left, word);
+        } else if (hash1 > hash2) {
+            node.right = addToTree(node.right, word);
         } else {
-            ignoredWordsTotal++;
+            node.count++;
         }
-
+        return node;
     }
 
-    @Override
     public void report() {
-        if (words.size() == 0) {
+        if (root == null) {
             System.out.println("*** No words to report! ***");
             return;
         }
         System.out.println("Listing words from a file: " + bookFile);
         System.out.println("Ignoring words from a file: " + wordsToIgnoreFile);
         System.out.println("Sorting the results...");
-        // First sort the array
-        sorted = words.toSortedArray();
-        Algorithms.reverse(sorted);
-        System.out.println("...sorted.");
 
-        for (int index = 0; index < 100 && index<sorted.length; index++) {
-            String word = String.format("%-20s",sorted[index].getKey()).replace(' ', '.');
-            System.out.format("%4d. %s %6d%n", index + 1, word, sorted[index].getValue());
+        nodes = new TreeNode[uniqueWordCount];
+        int filledSize = fillArray(root, nodes, 0);
+
+        heapSort(nodes);
+
+        for (int i = 0; i < filledSize; i++) {
+            System.out.println(nodes[i].word + ": " + nodes[i].count);
         }
+        System.out.println("The depth of the BST: " + maxDepth(root));
         System.out.println("Count of words in total: " + totalWordCount);
         System.out.println("Count of unique words:    " + uniqueWordCount);
         System.out.println("Count of words to ignore:    " + filter.ignoreWordCount());
         System.out.println("Ignored words count:      " + ignoredWordsTotal);
-        System.out.println("How many times the inner loop rolled: " + loopCount);
-        System.out.println("\nInformation for BST implementation");
-        System.out.println(words.getStatus());
     }
 
     @Override
     public void close() {
         bookFile = null;
         wordsToIgnoreFile = null;
-        words = null;
+        root = null;
         if (filter != null) {
             filter.close();
         }
@@ -159,16 +154,16 @@ public class BSTBookImplementation implements Book {
 
     @Override
     public String getWordInListAt(int position) {
-        if (sorted != null && position >= 0 && position < uniqueWordCount) {
-            return sorted[position].getKey();
+        if (nodes != null && position >= 0 && position < uniqueWordCount) {
+            return nodes[position].word;
         }
         return null;
     }
 
     @Override
     public int getWordCountInListAt(int position) {
-        if (sorted != null && position >= 0 && position < uniqueWordCount) {
-            return sorted[position].getValue();
+        if (nodes != null && position >= 0 && position < uniqueWordCount) {
+            return nodes[position].count;
         }
         return -1;
     }
@@ -181,5 +176,74 @@ public class BSTBookImplementation implements Book {
             }
         }
         return false;
+    }
+
+    private int calcHash(String key) {
+        int hash = 1;
+
+        for (char c : key.toCharArray()) {
+            hash = hash * 31 + c;
+        }
+
+        return hash;
+    }
+
+    private int fillArray(TreeNode node, TreeNode[] array, int index) {
+        if (node == null) {
+            return index;
+        }
+        index = fillArray(node.left, array, index);
+        array[index++] = node;
+        return fillArray(node.right, array, index);
+    }
+
+
+    private void heapSort(TreeNode[] array) {
+        int n = array.length;
+
+        for (int i = n / 2 - 1; i >= 0; i--) {
+            heapify(array, n, i);
+        }
+
+        for (int i = n - 1; i > 0; i--) {
+            TreeNode temp = array[0];
+            array[0] = array[i];
+            array[i] = temp;
+
+            heapify(array, i, 0);
+        }
+    }
+
+    private void heapify(TreeNode[] array, int n, int i) {
+        int max = i;
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+
+        if (left < n && array[left].count < array[max].count) {
+            max = left;
+        }
+
+        if (right < n && array[right].count < array[max].count) {
+            max = right;
+        }
+
+        if (max != i) {
+            TreeNode temp = array[i];
+            array[i] = array[max];
+            array[max] = temp;
+
+            heapify(array, n, max);
+        }
+    }
+
+    private int maxDepth(TreeNode node) {
+        if (node == null) {
+            return 0;
+        } else {
+            int leftDepth = maxDepth(node.left);
+            int rightDepth = maxDepth(node.right);
+
+            return Math.max(leftDepth, rightDepth) + 1;
+        }
     }
 }
